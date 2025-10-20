@@ -51,10 +51,10 @@ const Register = () => {
         <h1 className="text-3xl text-purple-500 text-center font-extrabold underline mb-5 mt-10">
           Register
         </h1>
-        <div className="flex gap-5 flex-col md:flex-row md:gap-10">
+        <div className="flex gap-5 flex-col md:flex-row md:gap-10 md:items-center">
           <div className="bg-white p-10 rounded-3xl">
             <form onSubmit={handleSubmit(onSubmit)} className="md:w-[300px]">
-              <div className="flex flex-col gap-5 items-center">
+              <div className="flex flex-col gap-5 items-center md:gap-3">
                 <label className="w-full">
                   <p className="text-md mb-2"> Name:</p>
                   <input
@@ -136,7 +136,7 @@ const Register = () => {
             </form>
           </div>
           <img
-            className="rounded-3xl w-96 object-cover mix-blend-multiply"
+            className="rounded-3xl  mix-blend-multiply md:w-[400px] md:h-[400px]"
             src="https://static.vecteezy.com/system/resources/thumbnails/011/432/528/small/enter-login-and-password-registration-page-on-screen-sign-in-to-your-account-creative-metaphor-login-page-mobile-app-with-user-page-flat-illustration-vector.jpg"
             alt=""
           />
