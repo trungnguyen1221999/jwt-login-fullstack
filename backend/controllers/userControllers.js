@@ -1,4 +1,7 @@
-import { generalAccessToken, generalRefreshToken } from "../helper/jwtGenerateToken.js";
+import {
+  generalAccessToken,
+  generalRefreshToken,
+} from "../helper/jwtGenerateToken.js";
 import User from "../models/userModels.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -35,34 +38,73 @@ const userLogin = async (req, res) => {
     const existUser = await User.findOne({ username });
     if (!existUser) {
       return res.status(400).json({ message: "Invalid credentials" });
-      }
+    }
     const isMatch = await bcrypt.compare(password, existUser.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
-      }
-      const accessToken = generalAccessToken({ id: existUser._id, email: existUser.email });
-      res.status(200).json({ message: "Login successful", accessToken });
-      const refreshToken = generalRefreshToken({ id: existUser._id, email: existUser.email });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
+    }
+    const accessToken = generalAccessToken({
+      id: existUser._id,
+      email: existUser.email,
+    });
+    res.status(200).json({ message: "Login successful", accessToken });
+    const refreshToken = generalRefreshToken({
+      id: existUser._id,
+      email: existUser.email,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 };
 
-const getUserProfile = async (req, res) => {};
+const getAllUserProfile = async (req, res) => {
+  try {
+    const users = await User.find();
+    res
+      .status(200)
+      .json({ message: "User profiles retrieved successfully", data: users });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
-const updateUserProfile = async (req, res) => {};
-const deleteUser = async (req, res) => {};
+const updateUserProfile = async (req, res) => {
+    const { id } = req.params;
+    try {
+        if (!id) res.status(400).json({ message: "User ID is required" });
+        const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true });
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User profile updated successfully", data: updatedUser });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        if (!id) res.status(400).json({ message: "User ID is required" });
+        const deletedUser = await User.findByIdAndDelete(id);
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User deleted successfully", data: deletedUser });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
 
 export {
   userRegister,
   userLogin,
-  getUserProfile,
+  getAllUserProfile,
   updateUserProfile,
   deleteUser,
 };
