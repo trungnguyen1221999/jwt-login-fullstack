@@ -1,7 +1,7 @@
 
 import express from 'express'
-import dotnet from 'dotnet'
-dotnet.config();
+import dotenv from 'dotenv'
+dotenv.config();
 const app = express();
 
 const port = process.env.PORT || 5002;
