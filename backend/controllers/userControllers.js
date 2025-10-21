@@ -2,6 +2,7 @@ import {
   generalAccessToken,
   generalRefreshToken,
 } from "../helper/jwtGenerateToken.js";
+import sessionSchema from "../models/sessionSchema.js";
 import User from "../models/userModels.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -43,21 +44,21 @@ const userLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    const accessToken = generalAccessToken({
-      id: existUser._id,
-      email: existUser.email,
-    });
-    res.status(200).json({ message: "Login successful", accessToken });
-    const refreshToken = generalRefreshToken({
-      id: existUser._id,
-      email: existUser.email,
-    });
+    const accessToken = generalAccessToken(existUser);
+
+    const refreshToken = generalRefreshToken(existUser);
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+    await sessionSchema.create({
+      userId: existUser._id,
+      refreshToken,
+      expiredAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    res.status(200).json({ message: "Login successful", accessToken });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -84,12 +85,10 @@ const updateUserProfile = async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-    res
-      .status(200)
-      .json({
-        message: "User profile updated successfully",
-        data: updatedUser,
-      });
+    res.status(200).json({
+      message: "User profile updated successfully",
+      data: updatedUser,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -116,10 +115,7 @@ const refreshAccessToken = async (req, res) => {
     const user = req.user; // Từ verifyRefreshToken middleware
 
     // Tạo access token mới
-    const newAccessToken = generalAccessToken({
-      id: user._id,
-      email: user.email,
-    });
+    const newAccessToken = generalAccessToken(user);
 
     res.status(200).json({
       success: true,
@@ -137,12 +133,17 @@ const refreshAccessToken = async (req, res) => {
 // Logout - Xóa refresh token
 const userLogout = async (req, res) => {
   try {
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-    });
+    const refreshToken = req.cookies?.refreshToken;
+    console.log("Logout refreshToken:", refreshToken);
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Refresh token not found",
+      });
+    }
+    res.clearCookie("refreshToken");
 
+    await sessionSchema.deleteOne({ refreshToken });
     res.status(200).json({
       success: true,
       message: "Logged out successfully",

@@ -66,10 +66,7 @@ const authMiddleware = async (req, res, next) => {
 
         // Tạo access token mới
 
-        const newAccessToken = generalAccessToken({
-          id: user._id,
-          email: user.email,
-        });
+        const newAccessToken = generalAccessToken(user);
 
         // Gửi token mới về client (kèm Bearer prefix)
         res.setHeader("X-New-Access-Token", `Bearer ${newAccessToken}`);

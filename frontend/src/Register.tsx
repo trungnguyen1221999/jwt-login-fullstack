@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import registerApi from "./api/registerApi";
 type RegisterInput = {
   name: string;
   email: string;
@@ -26,15 +28,26 @@ const schema = z
       .min(6, "Password must be at least 6 characters")
       .nonempty("Password is required"),
     confirmPassword: z
-      .string().nonempty("Confirm Password is required")
-      .min(6, "Confirm Password must be at least 6 characters")
-    
+      .string()
+      .nonempty("Confirm Password is required")
+      .min(6, "Confirm Password must be at least 6 characters"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
   });
 
 const Register = () => {
+  const registerMutation = useMutation({
+    mutationFn: async (data: Omit<RegisterInput, "confirmPassword">) => {
+      await registerApi(data);
+    },
+    onSuccess: () => {
+      navigate("/login");
+    },
+    onError: (error) => {
+      console.error("Registration failed:", error);
+    },
+  });
   const navigate = useNavigate();
   const {
     register,
@@ -43,7 +56,7 @@ const Register = () => {
   } = useForm<RegisterInput>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: RegisterInput) => {
-    console.log(data);
+    registerMutation.mutate(data);
   };
   return (
     <div>

@@ -22,7 +22,7 @@ userRouter.post("/login", userLogin);
 
 userRouter.post("/refresh-token", verifyRefreshToken, refreshAccessToken);
 
-userRouter.post("/logout", userLogout);
+userRouter.post("/logout", authMiddleware, userLogout);
 
 userRouter.get("/profile", authMiddleware, isAdmin, getAllUserProfile);
 

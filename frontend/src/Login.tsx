@@ -1,24 +1,45 @@
 import { useNavigate } from "react-router-dom";
-import {useForm}  from 'react-hook-form'
+import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import loginApi from "./api/loginApi";
 type Input = {
-    username: string;
-    password: string;
-}
+  username: string;
+  password: string;
+};
 const schema = z.object({
-    username : z.string().min(3 , "Username at least 3 character").nonempty("Username is required"),
-    password : z.string().min(6, "Password must be at least 6 characters").nonempty("Password is required"),
-})
+  username: z
+    .string()
+    .min(3, "Username at least 3 character")
+    .nonempty("Username is required"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .nonempty("Password is required"),
+});
 const Login = () => {
-    
+  const loginMutaion = useMutation({
+    mutationFn: ({ username, password }: Input) => loginApi(username, password),
+    onSuccess: (data) => {
+      console.log("Login successful:", data);
+      navigate("/");
+    },
+    onError: (error) => {
+      console.error("Login failed:", error);
+    },
+  });
   const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors } } = useForm<Input>({
-        resolver: zodResolver(schema),
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Input>({
+    resolver: zodResolver(schema),
+  });
   const onSubmit = (data: Input) => {
-    console.log(data);
-  }
+    loginMutaion.mutate(data);
+  };
   return (
     <div>
       <div className="flex flex-col sm:gap-3 h-screen justify-center items-center bg-avocado-500 border-10 border-purple-500">
