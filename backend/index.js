@@ -14,18 +14,7 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // origin = null khi request từ Postman hoặc curl
-      if (!origin) return callback(null, true);
-
-      // Chỉ cho phép các origin từ localhost
-      if (origin.startsWith("http://localhost:")) {
-        return callback(null, true);
-      }
-
-      // Nếu không đúng, từ chối
-      callback(new Error("Not allowed by CORS"));
-    },
+    origin: "https://transcendent-cupcake-185c5a.netlify.app/",
     credentials: true, // gửi cookie
   })
 );

@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import React from "react";
 import logoutApi from "./api/logoutApi";
 import { useNavigate } from "react-router-dom";
 
