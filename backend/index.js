@@ -13,21 +13,29 @@ const app = express();
 
 // CORS configuration
 app.use(
-  cors(
-    { credentials: true } // <– rất quan trọng để gửi cookie
-  )
-); // Cho phép tất cả origins với cấu hình mặc định
+  cors({
+    origin: function (origin, callback) {
+      // origin = null khi request từ Postman hoặc curl
+      if (!origin) return callback(null, true);
 
+      // Chỉ cho phép các origin từ localhost
+      if (origin.startsWith("http://localhost:")) {
+        return callback(null, true);
+      }
+
+      // Nếu không đúng, từ chối
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true, // gửi cookie
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
 const port = process.env.PORT || 5002;
 
 app.use("/api/users", userRouter);
-app.get("/check-cookie", (req, res) => {
-  console.log("Cookies received:", req.cookies);
-  res.json(req.cookies);
-});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

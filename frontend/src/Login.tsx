@@ -23,6 +23,8 @@ const Login = () => {
     mutationFn: ({ username, password }: Input) => loginApi(username, password),
     onSuccess: (data) => {
       console.log("Login successful:", data);
+      const accessToken = data.accessToken;
+      localStorage.setItem("accessToken", accessToken);
       navigate("/");
     },
     onError: (error) => {
